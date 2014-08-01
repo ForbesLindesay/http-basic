@@ -2,13 +2,11 @@
   "name": "http-basic",
   "version": "0.0.0",
   "description": "Very low level wrapper arround http.request/https.request",
-  "keywords": [],
+  "keywords": ["http", "https", "request", "fetch"],
   "dependencies": {},
-  "devDependencies": {
-    "mocha": "*"
-  },
+  "devDependencies": {},
   "scripts": {
-    "test": "mocha -R spec"
+    "test": "node test"
   },
   "repository": {
     "type": "git",

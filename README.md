@@ -2,9 +2,9 @@
 
 Very low level wrapper arround http.request/https.request
 
-[![Build Status](https://travis-ci.org/ForbesLindesay/http-basic.png?branch=master)](https://travis-ci.org/ForbesLindesay/http-basic)
-[![Dependency Status](https://gemnasium.com/ForbesLindesay/http-basic.png)](https://gemnasium.com/ForbesLindesay/http-basic)
-[![NPM version](https://badge.fury.io/js/http-basic.png)](http://badge.fury.io/js/http-basic)
+[![Build Status](https://img.shields.io/travis/ForbesLindesay/http-basic/master.svg)](https://travis-ci.org/ForbesLindesay/http-basic)
+[![Dependency Status](https://img.shields.io/gemnasium/ForbesLindesay/http-basic.svg)](https://gemnasium.com/ForbesLindesay/http-basic)
+[![NPM version](https://img.shields.io/npm/v/http-basic.svg)](https://www.npmjs.org/package/http-basic)
 
 ## Installation
 
@@ -36,7 +36,6 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
 **options:**
 
  - headers - http headers (defaults to `{}`)
- - auth - a string of the form `user:password` or an object of the form `{user: username, pass: password}`
  - agent (default: `false`)
 
 **returns:**

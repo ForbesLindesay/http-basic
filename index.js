@@ -3,6 +3,7 @@
 var parseUrl = require('url').parse;
 var protocols  = {http: require('http'), https: require('https')};
 
+module.exports = request;
 function request(method, url, options) {
   if (typeof method !== 'string') {
     throw new TypeError('The method must be a string.');
@@ -20,12 +21,7 @@ function request(method, url, options) {
   url = parseUrl(url);
 
   var headers = options.headers || {};
-  var auth = options.auth;
-  var agent = options.agent || false;
-
-  if (auth && typeof auth === 'object') {
-    auth = auth.user + ':' + auth.pass;
-  }
+  var agent = 'agent' in options ? options.agent : false;
 
   return protocols[url.protocol.replace(/\:$/, '')].request({
     host: url.host,
@@ -33,7 +29,6 @@ function request(method, url, options) {
     path: url.path,
     method: method.toUpperCase(),
     headers: headers,
-    auth: auth,
     agent: agent
   });
 }
