@@ -1,6 +1,7 @@
 'use strict';
 
 var parseUrl = require('url').parse;
+var zlib = require('zlib');
 var protocols  = {http: require('http'), https: require('https')};
 var PassThrough = require('stream').PassThrough;
 var Response = require('http-response-object');
@@ -45,6 +46,30 @@ function request(method, url, options, callback) {
   }
   if (cache && !(typeof cache === 'object' && typeof cache.getResponse === 'function' && typeof cache.setResponse === 'function')) {
     throw new TypeError(cache + ' is not a valid cache, caches must have `getResponse` and `setResponse` methods.');
+  }
+
+
+  if (options.gzip) {
+    headers['accept-encoding'] = headers['accept-encoding'] ? headers['accept-encoding'] + ',gzip,deflate' : 'gzip,deflate';
+    return request(method, urlString, {
+      headers: headers,
+      agent: agent,
+      followRedirects: options.followRedirects,
+      cache: cache
+    }, function (err, res) {
+      if (err) return callback(err);
+      switch (res.headers['content-encoding']) {
+        case 'gzip':
+          delete res.headers['content-encoding'];
+          res.body = res.body.pipe(zlib.createGunzip()).pipe(new PassThrough());
+          break;
+        case 'deflate':
+          delete res.headers['content-encoding'];
+          res.body = res.body.pipe(zlib.createInflate()).pipe(new PassThrough());
+          break;
+      }
+      return callback(err, res);
+    });
   }
 
   var responded = false;

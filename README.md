@@ -1,6 +1,6 @@
 # http-basic
 
-Very low level wrapper arround http.request/https.request
+Simple wrapper arround http.request/https.request
 
 [![Build Status](https://img.shields.io/travis/ForbesLindesay/http-basic/master.svg)](https://travis-ci.org/ForbesLindesay/http-basic)
 [![Dependency Status](https://img.shields.io/gemnasium/ForbesLindesay/http-basic.svg)](https://gemnasium.com/ForbesLindesay/http-basic)
@@ -14,6 +14,8 @@ Very low level wrapper arround http.request/https.request
 
 ```js
 var request = require('http-basic');
+
+var options = {followRedirects: true, gzip: true, cache: 'memory'};
 
 var req = request('GET', 'http://example.com', options, function (err, res) {
   if (err) throw err;
@@ -33,24 +35,27 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
 
 **options:**
 
- - headers - http headers (defaults to `{}`)
- - agent (default: `false`)
- - followRedirects (default: `false`) - if true, redirects are followed (note that this only affects the result in the callback)
- - cache (default: `null`) - Either a Cache implementation (see below) or `'memory'` to use the default in-memory cache or `file` to use the default file-system cache.
+ - `headers` - (default `{}`) http headers
+ - `agent` - (default: `false`) controlls keep-alive (see http://nodejs.org/api/http.html#http_http_request_options_callback)
+ - `followRedirects` - (default: `false`) - if true, redirects are followed (note that this only affects the result in the callback)
+ - `gzip` (default: `false`) - automatically accept gzip and deflate encodings.  This is kept completely transparent to the user.
+ - `cache` - (default: `null`) - `'memory'` or `'file'` to use the default built in caches or you can pass your own cache implementation.
 
 **callback:**
 
 The callback is called with `err` as the first argument and `res` as the second argument. `res` is an [http-response-object](https://github.com/ForbesLindesay/http-response-object).  It has the following properties:
 
- - `statusCode` a number representing the HTTP Status Code
- - `headers` an object representing the HTTP headers
- - `body` a stream respresenting the request body.
+ - `statusCode` - a number representing the HTTP Status Code
+ - `headers` - an object representing the HTTP headers
+ - `body` - a readable stream respresenting the request body.
 
 **returns:**
 
-[http.ClientRequest](http://nodejs.org/api/http.html#http_class_http_clientrequest) if the method is duplex (i.e. `!(method === 'GET' || method === 'DELETE' || method === 'HEAD')`), otherwise `undefined`.
+If the method is `GET`, `DELETE` or `HEAD`, it returns `undefined`.
 
-### Implementing a Cache
+Otherwise, it returns a writable stream for the body of the request.
+
+## Implementing a Cache
 
 A `Cache` is an object with two methods:
 
