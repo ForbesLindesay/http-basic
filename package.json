@@ -2,8 +2,16 @@
   "name": "http-basic",
   "version": "0.0.0",
   "description": "Very low level wrapper arround http.request/https.request",
-  "keywords": ["http", "https", "request", "fetch"],
-  "dependencies": {},
+  "keywords": [
+    "http",
+    "https",
+    "request",
+    "fetch"
+  ],
+  "dependencies": {
+    "http-response-object": "^1.0.0",
+    "concat-stream": "^1.4.6"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "node test"
