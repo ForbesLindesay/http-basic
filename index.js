@@ -48,6 +48,7 @@ function request(method, url, options, callback) {
     throw new TypeError(cache + ' is not a valid cache, caches must have `getResponse` and `setResponse` methods.');
   }
 
+  var duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
 
   if (options.gzip) {
     headers['accept-encoding'] = headers['accept-encoding'] ? headers['accept-encoding'] + ',gzip,deflate' : 'gzip,deflate';
@@ -71,78 +72,87 @@ function request(method, url, options, callback) {
       return callback(err, res);
     });
   }
-
-  var responded = false;
-
-  var duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
-
-  function doRequest(callback) {
-    return protocols[url.protocol.replace(/\:$/, '')].request({
-      host: url.host,
-      port: url.port,
-      path: url.path,
-      method: method,
+  if (options.followRedirects) {
+    return request(method, urlString, {
       headers: headers,
-      agent: agent
-    }, function (res) {
-      if (responded) return res.resume();
-      responded = true;
+      agent: agent,
+      cache: cache
+    }, function (err, res) {
+      if (err) return callback(err);
       if (options.followRedirects && isRedirect(res.statusCode)) {
         return request(duplex ? 'GET' : method, res.headers.location, options, callback);
+      } else {
+        return callback(null, res);
       }
-      callback(null, new Response(res.statusCode, res.headers, res));
-    }).on('error', function (err) {
-      if (responded) return;
-      responded = true;
-      callback(err);
+    });
+  }
+  if (cache && method === 'GET') {
+    var timestamp = Date.now();
+    return cache.getResponse(urlString, function (err, cachedResponse) {
+      if (err) {
+        console.warn('Error reading from cache: ' + err.message);
+      }
+      if (cachedResponse && cacheUtils.isMatch(headers, cachedResponse)) {
+        if (!cacheUtils.isExpired(cachedResponse)) {
+          var res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
+          res.fromCache = true;
+          res.fromNotModified = false;
+          return callback(null, res);
+        } else if (cachedResponse.headers['etag']) {
+          headers['if-none-match'] = cachedResponse.headers['etag'];
+        }
+      }
+      request('GET', urlString, {
+        headers: headers,
+        agent: agent
+      }, function (err, res) {
+        if (err) return callback(err);
+        if (res.statusCode === 304 && cachedResponse) { // Not Modified
+          res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
+          res.fromCache = true;
+          res.fromNotModified = true;
+          return callback(null, res);
+        } else if (cacheUtils.canCache(res)) {
+          var cachedResponseBody = new PassThrough();
+          var resultResponseBody = new PassThrough();
+          res.body.on('data', function (data) { cachedResponseBody.write(data); resultResponseBody.write(data); });
+          res.body.on('end', function () { cachedResponseBody.end(); resultResponseBody.end(); });
+          var responseToCache = new Response(res.statusCode, res.headers, cachedResponseBody);
+          var resultResponse = new Response(res.statusCode, res.headers, resultResponseBody);
+          responseToCache.requestHeaders = headers;
+          responseToCache.requestTimestamp = timestamp;
+          cache.setResponse(urlString, responseToCache);
+          return callback(null, resultResponse);
+        } else {
+          return callback(null, res);
+        }
+      });
     });
   }
 
+  var responded = false;
+
+  var req = protocols[url.protocol.replace(/\:$/, '')].request({
+    host: url.host,
+    port: url.port,
+    path: url.path,
+    method: method,
+    headers: headers,
+    agent: agent
+  }, function (res) {
+    if (responded) return res.resume();
+    responded = true;
+    callback(null, new Response(res.statusCode, res.headers, res));
+  }).on('error', function (err) {
+    if (responded) return;
+    responded = true;
+    callback(err);
+  });
+
   if (duplex) {
-    return doRequest(callback);
+    return req;
   } else {
-    if (cache && method === 'GET') {
-      var timestamp = Date.now();
-      cache.getResponse(urlString, function (err, cachedResponse) {
-        if (err) {
-          console.warn('Error reading from cache: ' + err.message);
-        }
-        if (cachedResponse && cacheUtils.isMatch(headers, cachedResponse)) {
-          if (!cacheUtils.isExpired(cachedResponse)) {
-            var res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
-            res.fromCache = true;
-            res.fromNotModified = false;
-            return callback(null, res);
-          } else if (cachedResponse.headers['etag']) {
-            headers['if-none-match'] = cachedResponse.headers['etag'];
-          }
-        }
-        doRequest(function (err, res) {
-          if (err) return callback(err);
-          if (res.statusCode === 304 && cachedResponse) { // Not Modified
-            res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
-            res.fromCache = true;
-            res.fromNotModified = true;
-            return callback(null, res);
-          } else if (cacheUtils.canCache(res)) {
-            var cachedResponseBody = new PassThrough();
-            var resultResponseBody = new PassThrough();
-            res.body.on('data', function (data) { cachedResponseBody.write(data); resultResponseBody.write(data); });
-            res.body.on('end', function () { cachedResponseBody.end(); resultResponseBody.end(); });
-            var responseToCache = new Response(res.statusCode, res.headers, cachedResponseBody);
-            var resultResponse = new Response(res.statusCode, res.headers, resultResponseBody);
-            responseToCache.requestHeaders = headers;
-            responseToCache.requestTimestamp = timestamp;
-            cache.setResponse(urlString, responseToCache);
-            return callback(null, resultResponse);
-          } else {
-            return callback(null, res);
-          }
-        }).end();
-      });
-    } else {
-      doRequest(callback).end();
-    }
+    req.end();
   }
 }
 
