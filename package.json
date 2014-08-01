@@ -6,7 +6,13 @@
     "http",
     "https",
     "request",
-    "fetch"
+    "fetch",
+    "gzip",
+    "deflate",
+    "redirect",
+    "cache",
+    "etag",
+    "cache-control"
   ],
   "dependencies": {
     "http-response-object": "^1.0.0",
