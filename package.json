@@ -1,6 +1,6 @@
 {
   "name": "http-basic",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Very low level wrapper arround http.request/https.request",
   "keywords": [
     "http",
