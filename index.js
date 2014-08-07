@@ -62,11 +62,11 @@ function request(method, url, options, callback) {
       switch (res.headers['content-encoding']) {
         case 'gzip':
           delete res.headers['content-encoding'];
-          res.body = res.body.pipe(zlib.createGunzip()).pipe(new PassThrough());
+          res.body = res.body.pipe(zlib.createGunzip());
           break;
         case 'deflate':
           delete res.headers['content-encoding'];
-          res.body = res.body.pipe(zlib.createInflate()).pipe(new PassThrough());
+          res.body = res.body.pipe(zlib.createInflate());
           break;
       }
       return callback(err, res);
@@ -80,6 +80,8 @@ function request(method, url, options, callback) {
     }, function (err, res) {
       if (err) return callback(err);
       if (options.followRedirects && isRedirect(res.statusCode)) {
+        // prevent leakage of file handles
+        res.body.resume();
         return request(duplex ? 'GET' : method, res.headers.location, options, callback);
       } else {
         return callback(null, res);
@@ -108,11 +110,15 @@ function request(method, url, options, callback) {
       }, function (err, res) {
         if (err) return callback(err);
         if (res.statusCode === 304 && cachedResponse) { // Not Modified
+          // prevent leakage of file handles
+          res.body.resume();
           res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
           res.fromCache = true;
           res.fromNotModified = true;
           return callback(null, res);
         } else if (cacheUtils.canCache(res)) {
+          // prevent leakage of file handles
+          cachedResponse && cachedResponse.body.resume();
           var cachedResponseBody = new PassThrough();
           var resultResponseBody = new PassThrough();
           res.body.on('data', function (data) { cachedResponseBody.write(data); resultResponseBody.write(data); });
@@ -124,6 +130,8 @@ function request(method, url, options, callback) {
           cache.setResponse(urlString, responseToCache);
           return callback(null, resultResponse);
         } else {
+          // prevent leakage of file handles
+          cachedResponse && cachedResponse.body.resume();
           return callback(null, res);
         }
       });
