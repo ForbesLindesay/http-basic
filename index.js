@@ -34,6 +34,10 @@ function request(method, url, options, callback) {
   method = method.toUpperCase();
   var urlString = url;
   url = parseUrl(urlString);
+  
+  if (!url.protocol || !protocols[url.protocol.replace(/\:$/, '')]) {
+    throw new TypeError('The protocol "' + url.protocol + '" is not supported, cannot load "' + urlString + '"');
+  }
 
   var headers = {};
   Object.keys(options.headers || {}).forEach(function (header) {
