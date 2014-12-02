@@ -1,6 +1,7 @@
 'use strict';
 
 var parseUrl = require('url').parse;
+var resolveUrl = require('url').resolve;
 var zlib = require('zlib');
 var protocols  = {http: require('http'), https: require('https')};
 var PassThrough = require('stream').PassThrough;
@@ -82,7 +83,7 @@ function request(method, url, options, callback) {
       if (options.followRedirects && isRedirect(res.statusCode)) {
         // prevent leakage of file handles
         res.body.resume();
-        return request(duplex ? 'GET' : method, res.headers.location, options, callback);
+        return request(duplex ? 'GET' : method, resolveUrl(urlString, res.headers.location), options, callback);
       } else {
         return callback(null, res);
       }
