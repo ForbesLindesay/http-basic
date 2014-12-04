@@ -99,8 +99,8 @@ function request(method, url, options, callback) {
       if (err) {
         console.warn('Error reading from cache: ' + err.message);
       }
-      if (cachedResponse && cacheUtils.isMatch(headers, cachedResponse)) {
-        if (!cacheUtils.isExpired(cachedResponse)) {
+      if (cachedResponse && (cache.isMatch ? cache : cacheUtils).isMatch(headers, cachedResponse)) {
+        if (!(cache.isExpired ? cache : cacheUtils).isExpired(cachedResponse)) {
           var res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
           res.fromCache = true;
           res.fromNotModified = false;
@@ -121,7 +121,7 @@ function request(method, url, options, callback) {
           res.fromCache = true;
           res.fromNotModified = true;
           return callback(null, res);
-        } else if (cacheUtils.canCache(res)) {
+        } else if ((cache.canCache ? cache : cacheUtils).canCache(res)) {
           // prevent leakage of file handles
           cachedResponse && cachedResponse.body.resume();
           var cachedResponseBody = new PassThrough();

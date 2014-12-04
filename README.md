@@ -74,6 +74,8 @@ A cached response object is an object with the following properties:
 
 `setResponse` should just swallow any errors it has (or resport them using `console.warn`).
 
+A cache may also define any of the methods from `lib/cache-utils.js` to override behaviour for what gets cached.  It is currently still only possible to cache "get" requests, although this could be changed.
+
 ## License
 
   MIT
