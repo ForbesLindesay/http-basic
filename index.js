@@ -146,7 +146,7 @@ function request(method, url, options, callback) {
   var responded = false;
 
   var req = protocols[url.protocol.replace(/\:$/, '')].request({
-    host: url.host,
+    host: url.hostname,
     port: url.port,
     path: url.path,
     method: method,

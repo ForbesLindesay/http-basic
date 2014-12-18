@@ -11,6 +11,15 @@ request('GET', 'http://example.com', function (err, res) {
   res.body.resume();
 });
 
+request('GET', 'http://example.com:80', function (err, res) {
+  if (err) throw err;
+
+  console.log('response A1');
+  assert(res.statusCode === 200);
+  res.body.resume();
+});
+
+
 request('GET', 'https://www.promisejs.org', function (err, res) {
   if (err) throw err;
 
