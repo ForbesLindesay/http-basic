@@ -34,7 +34,7 @@ function request(method, url, options, callback) {
   method = method.toUpperCase();
   var urlString = url;
   url = parseUrl(urlString);
-  
+
   if (!url.protocol || !protocols[url.protocol.replace(/\:$/, '')]) {
     throw new TypeError('The protocol "' + url.protocol + '" is not supported, cannot load "' + urlString + '"');
   }
@@ -87,6 +87,11 @@ function request(method, url, options, callback) {
       if (options.followRedirects && isRedirect(res.statusCode)) {
         // prevent leakage of file handles
         res.body.resume();
+        if (method === 'DELETE' && res.statusCode === 303) {
+          // 303 See Other should convert to GET for duplex
+          // requests and for DELETE
+          method = 'GET';
+        }
         return request(duplex ? 'GET' : method, resolveUrl(urlString, res.headers.location), options, callback);
       } else {
         return callback(null, res);
@@ -170,5 +175,5 @@ function request(method, url, options, callback) {
 }
 
 function isRedirect(statusCode) {
-  return statusCode === 301 || statusCode === 302 || statusCode === 307 || statusCode === 308;
+  return statusCode === 301 || statusCode === 302 || statusCode === 303 || statusCode === 307 || statusCode === 308;
 }
