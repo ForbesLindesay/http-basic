@@ -82,6 +82,11 @@ function request(method, url, options, callback) {
       if (options.followRedirects && isRedirect(res.statusCode)) {
         // prevent leakage of file handles
         res.body.resume();
+        if (method === 'DELETE' && res.statusCode === 303) {
+          // 303 See Other should convert to GET for duplex
+          // requests and for DELETE
+          method = 'GET';
+        }
         return request(duplex ? 'GET' : method, res.headers.location, options, callback);
       } else {
         return callback(null, res);
@@ -165,5 +170,5 @@ function request(method, url, options, callback) {
 }
 
 function isRedirect(statusCode) {
-  return statusCode === 301 || statusCode === 302 || statusCode === 307 || statusCode === 308;
+  return statusCode === 301 || statusCode === 302 || statusCode === 303 || statusCode === 307 || statusCode === 308;
 }
