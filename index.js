@@ -43,6 +43,9 @@ function request(method, url, options, callback) {
   Object.keys(options.headers || {}).forEach(function (header) {
     headers[header.toLowerCase()] = options.headers[header];
   });
+  if (url.auth) {
+    headers['authorization'] = 'Basic ' + (new Buffer(url.auth)).toString('base64');
+  }
   var agent = 'agent' in options ? options.agent : false;
 
   var cache = options.cache;
