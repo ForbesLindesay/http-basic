@@ -64,7 +64,11 @@ function request(method, url, options, callback) {
       headers: headers,
       agent: agent,
       followRedirects: options.followRedirects,
-      cache: cache
+      retry: options.retry,
+      retryDelay: options.retryDelay,
+      maxRetries: options.maxRetries,
+      cache: cache,
+      timeout: options.timeout
     }, function (err, res) {
       if (err) return callback(err);
       switch (res.headers['content-encoding']) {
@@ -84,7 +88,11 @@ function request(method, url, options, callback) {
     return request(method, urlString, {
       headers: headers,
       agent: agent,
-      cache: cache
+      retry: options.retry,
+      retryDelay: options.retryDelay,
+      maxRetries: options.maxRetries,
+      cache: cache,
+      timeout: options.timeout
     }, function (err, res) {
       if (err) return callback(err);
       if (options.followRedirects && isRedirect(res.statusCode)) {
@@ -119,7 +127,11 @@ function request(method, url, options, callback) {
       }
       request('GET', urlString, {
         headers: headers,
-        agent: agent
+        retry: options.retry,
+        retryDelay: options.retryDelay,
+        maxRetries: options.maxRetries,
+        agent: agent,
+        timeout: options.timeout
       }, function (err, res) {
         if (err) return callback(err);
         if (res.statusCode === 304 && cachedResponse) { // Not Modified
@@ -151,6 +163,37 @@ function request(method, url, options, callback) {
     });
   }
 
+  function attempt(n) {
+    request(method, url, {
+      headers: headers,
+      agent: agent,
+      timeout: options.timeout
+    }, function (err, res) {
+      var retry = err || res.statusCode >= 400;
+      if (typeof options.retry === 'function') {
+        retry = options.retry(err, res, n + 1);
+      }
+      if (n >= (options.maxRetries | 5)) {
+        retry = false;
+      }
+      if (retry) {
+        var delay = options.retryDelay;
+        if (typeof options.retryDelay === 'function') {
+          delay = options.retryDelay(err, res, n + 1);
+        }
+        delay = delay || 200;
+        setTimeout(function () {
+          attempt(n + 1);
+        }, delay);
+      } else {
+        callback(null, res);
+      }
+    });
+  }
+  if (options.retry && method === 'GET') {
+    attempt(0);
+  }
+
   var responded = false;
 
   var req = protocols[url.protocol.replace(/\:$/, '')].request({
@@ -170,6 +213,20 @@ function request(method, url, options, callback) {
     callback(err);
   });
 
+  var start = Date.now();
+  function onTimeout() {
+    if (responded) return;
+    responded = true;
+    req.abort();
+    var duration = Date.now() - start;
+    var err = new Error('Request timed out after ' + duration + 'ms');
+    err.timeout = true;
+    err.duration = duration;
+    callback(err);
+  }
+  if (options.timeout) {
+    req.setTimeout(options.timeout, onTimeout);
+  }
   if (duplex) {
     return req;
   } else {
