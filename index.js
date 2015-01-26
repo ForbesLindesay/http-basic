@@ -103,6 +103,19 @@ function request(method, url, options, callback) {
           // requests and for DELETE
           method = 'GET';
         }
+        if (options.maxRedirects === 0) {
+          var err = new Error('Maximum number of redirects exceeded');
+          err.res = res;
+          return callback(err, res);
+        }
+        if (options.maxRedirects && options.maxRedirects !== Infinity) {
+          var opts = {};
+          Object.keys(options).forEach(function (key) {
+            opts[key] = options[key];
+          });
+          options = opts;
+          options.maxRedirects--;
+        }
         return request(duplex ? 'GET' : method, resolveUrl(urlString, res.headers.location), options, callback);
       } else {
         return callback(null, res);
@@ -118,6 +131,7 @@ function request(method, url, options, callback) {
       if (cachedResponse && (cache.isMatch ? cache : cacheUtils).isMatch(headers, cachedResponse)) {
         if (!(cache.isExpired ? cache : cacheUtils).isExpired(cachedResponse)) {
           var res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
+          res.url = urlString;
           res.fromCache = true;
           res.fromNotModified = false;
           return callback(null, res);
@@ -138,6 +152,7 @@ function request(method, url, options, callback) {
           // prevent leakage of file handles
           res.body.resume();
           res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
+          res.url = urlString;
           res.fromCache = true;
           res.fromNotModified = true;
           return callback(null, res);
@@ -191,7 +206,7 @@ function request(method, url, options, callback) {
     });
   }
   if (options.retry && method === 'GET') {
-    attempt(0);
+    return attempt(0);
   }
 
   var responded = false;
@@ -206,7 +221,9 @@ function request(method, url, options, callback) {
   }, function (res) {
     if (responded) return res.resume();
     responded = true;
-    callback(null, new Response(res.statusCode, res.headers, res));
+    var result = new Response(res.statusCode, res.headers, res);
+    result.url = urlString;
+    callback(null, result);
   }).on('error', function (err) {
     if (responded) return;
     responded = true;
@@ -224,8 +241,11 @@ function request(method, url, options, callback) {
     err.duration = duration;
     callback(err);
   }
+  if (options.socketTimeout) {
+    req.setTimeout(options.socketTimeout, onTimeout);
+  }
   if (options.timeout) {
-    req.setTimeout(options.timeout, onTimeout);
+    setTimeout(onTimeout, options.timeout);
   }
   if (duplex) {
     return req;

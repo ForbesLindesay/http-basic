@@ -38,9 +38,11 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
  - `headers` - (default `{}`) http headers
  - `agent` - (default: `false`) controlls keep-alive (see http://nodejs.org/api/http.html#http_http_request_options_callback)
  - `followRedirects` - (default: `false`) - if true, redirects are followed (note that this only affects the result in the callback)
+ - `maxRedirects` - (default: `Infinity`) - limit the number of redirects allowed.
  - `gzip` (default: `false`) - automatically accept gzip and deflate encodings.  This is kept completely transparent to the user.
  - `cache` - (default: `null`) - `'memory'` or `'file'` to use the default built in caches or you can pass your own cache implementation.
- - `timeout` (default: `false`) - times out if no data is seen for the given number of milliseconds.
+ - `timeout` (default: `false`) - times out if no response is returned within the given number of milliseconds.
+ - `socketTimeout` (default: `false`) - calls `req.setTimeout` internally which causes the request to timeout if no new data is seen for the given number of milliseconds.
  - `retry` (default: `false`) - retry GET requests.  Set this to `true` to retry when the request errors or returns a status code greater than or equal to 400 (can also be a function that takes `(err, req, attemptNo) => shouldRetry`)
  - `retryDelay` (default: `200`) - the delay between retries (can also be set to a function that takes `(err, res, attemptNo) => delay`)
  - `maxRetries` (default: `5`) - the number of times to retry before giving up.
@@ -52,6 +54,7 @@ The callback is called with `err` as the first argument and `res` as the second 
  - `statusCode` - a number representing the HTTP Status Code
  - `headers` - an object representing the HTTP headers
  - `body` - a readable stream respresenting the request body.
+ - `url` - the URL that was requested (in the case of redirects, this is the final url that was requested)
 
 **returns:**
 
