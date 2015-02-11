@@ -179,10 +179,11 @@ function request(method, url, options, callback) {
   }
 
   function attempt(n) {
-    request(method, url, {
+    request(method, urlString, {
       headers: headers,
       agent: agent,
-      timeout: options.timeout
+      timeout: options.timeout,
+      socketTimeout: options.socketTimeout
     }, function (err, res) {
       var retry = err || res.statusCode >= 400;
       if (typeof options.retry === 'function') {
