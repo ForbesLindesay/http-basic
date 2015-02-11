@@ -108,14 +108,19 @@ function request(method, url, options, callback) {
           err.res = res;
           return callback(err, res);
         }
+        var opts = {};
+        Object.keys(options).forEach(function (key) {
+          opts[key] = options[key];
+        });
+        options = opts;
         if (options.maxRedirects && options.maxRedirects !== Infinity) {
-          var opts = {};
-          Object.keys(options).forEach(function (key) {
-            opts[key] = options[key];
-          });
-          options = opts;
           options.maxRedirects--;
         }
+        // don't maintain headers through redirects
+        // This fixes a problem where a POST to http://example.com
+        // might result in a GET to http://example.co.uk that includes "content-length"
+        // as a header
+        options.headers = {};
         return request(duplex ? 'GET' : method, resolveUrl(urlString, res.headers.location), options, callback);
       } else {
         return callback(null, res);
