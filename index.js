@@ -6,6 +6,7 @@ var zlib = require('zlib');
 var protocols  = {http: require('http'), https: require('https')};
 var PassThrough = require('stream').PassThrough;
 var Response = require('http-response-object');
+var caseless = require('caseless');
 var cacheUtils = require('./lib/cache-utils.js');
 var builtinCaches = {
   memory: new (require('./lib/memory-cache.js'))(),
@@ -40,12 +41,10 @@ function request(method, url, options, callback) {
     throw new TypeError('The protocol "' + url.protocol + '" is not supported, cannot load "' + urlString + '"');
   }
 
-  var headers = {};
-  Object.keys(options.headers || {}).forEach(function (header) {
-    headers[header.toLowerCase()] = options.headers[header];
-  });
+  var rawHeaders = options.headers || {};
+  var headers = caseless(rawHeaders);
   if (url.auth) {
-    headers['authorization'] = 'Basic ' + (new Buffer(url.auth)).toString('base64');
+    headers.set('Authorization', 'Basic ' + (new Buffer(url.auth)).toString('base64'));
   }
   var agent = 'agent' in options ? options.agent : false;
 
@@ -60,9 +59,9 @@ function request(method, url, options, callback) {
   var duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
 
   if (options.gzip) {
-    headers['accept-encoding'] = headers['accept-encoding'] ? headers['accept-encoding'] + ',gzip,deflate' : 'gzip,deflate';
+    headers.set('Accept-Encoding', headers.has('Accept-Encoding') ? headers.get('Accept-Encoding') + ',gzip,deflate' : 'gzip,deflate');
     return request(method, urlString, {
-      headers: headers,
+      headers: rawHeaders,
       agent: agent,
       followRedirects: options.followRedirects,
       retry: options.retry,
@@ -87,7 +86,7 @@ function request(method, url, options, callback) {
   }
   if (options.followRedirects) {
     return request(method, urlString, {
-      headers: headers,
+      headers: rawHeaders,
       agent: agent,
       retry: options.retry,
       retryDelay: options.retryDelay,
@@ -134,7 +133,7 @@ function request(method, url, options, callback) {
       if (err) {
         console.warn('Error reading from cache: ' + err.message);
       }
-      if (cachedResponse && (cache.isMatch ? cache : cacheUtils).isMatch(headers, cachedResponse)) {
+      if (cachedResponse && (cache.isMatch ? cache : cacheUtils).isMatch(rawHeaders, cachedResponse)) {
         if (!(cache.isExpired ? cache : cacheUtils).isExpired(cachedResponse)) {
           var res = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body);
           res.url = urlString;
@@ -142,11 +141,11 @@ function request(method, url, options, callback) {
           res.fromNotModified = false;
           return callback(null, res);
         } else if (cachedResponse.headers['etag']) {
-          headers['if-none-match'] = cachedResponse.headers['etag'];
+          headers.set('If-None-Match', cachedResponse.headers['etag']);
         }
       }
       request('GET', urlString, {
-        headers: headers,
+        headers: rawHeaders,
         retry: options.retry,
         retryDelay: options.retryDelay,
         maxRetries: options.maxRetries,
@@ -171,7 +170,7 @@ function request(method, url, options, callback) {
           res.body.on('end', function () { cachedResponseBody.end(); resultResponseBody.end(); });
           var responseToCache = new Response(res.statusCode, res.headers, cachedResponseBody);
           var resultResponse = new Response(res.statusCode, res.headers, resultResponseBody);
-          responseToCache.requestHeaders = headers;
+          responseToCache.requestHeaders = rawHeaders;
           responseToCache.requestTimestamp = timestamp;
           cache.setResponse(urlString, responseToCache);
           return callback(null, resultResponse);
@@ -185,9 +184,8 @@ function request(method, url, options, callback) {
   }
 
   function attempt(n) {
-    console.dir('attempt: ' + n);
     request(method, urlString, {
-      headers: headers,
+      headers: rawHeaders,
       agent: agent,
       timeout: options.timeout
     }, function (err, res) {
@@ -218,26 +216,15 @@ function request(method, url, options, callback) {
 
   var responded = false;
 
-  console.log(method + ' ' + urlString);
-  console.dir({
-    host: url.hostname,
-    port: url.port,
-    path: url.path,
-    method: method,
-    headers: headers,
-    agent: agent
-  });
   var req = protocols[url.protocol.replace(/\:$/, '')].request({
     host: url.hostname,
     port: url.port,
     path: url.path,
     method: method,
-    headers: headers,
+    headers: rawHeaders,
     agent: agent
   }, function (res) {
     var end = Date.now();
-    console.log(method + ' ' + urlString + ' (' + res.statusCode + ') - ' + (end - start) + 'ms');
-    console.dir(res.headers, {colors: true});
     if (responded) return res.resume();
     responded = true;
     var result = new Response(res.statusCode, res.headers, res);
