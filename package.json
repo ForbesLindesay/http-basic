@@ -15,8 +15,9 @@
     "cache-control"
   ],
   "dependencies": {
-    "http-response-object": "^1.0.0",
-    "concat-stream": "^1.4.6"
+    "caseless": "~0.9.0",
+    "concat-stream": "^1.4.6",
+    "http-response-object": "^1.0.0"
   },
   "devDependencies": {},
   "scripts": {
