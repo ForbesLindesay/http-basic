@@ -185,7 +185,6 @@ function request(method, url, options, callback) {
   }
 
   function attempt(n) {
-    console.dir('attempt: ' + n);
     request(method, urlString, {
       headers: headers,
       agent: agent,
@@ -218,15 +217,6 @@ function request(method, url, options, callback) {
 
   var responded = false;
 
-  console.log(method + ' ' + urlString);
-  console.dir({
-    host: url.hostname,
-    port: url.port,
-    path: url.path,
-    method: method,
-    headers: headers,
-    agent: agent
-  });
   var req = protocols[url.protocol.replace(/\:$/, '')].request({
     host: url.hostname,
     port: url.port,
@@ -236,8 +226,6 @@ function request(method, url, options, callback) {
     agent: agent
   }, function (res) {
     var end = Date.now();
-    console.log(method + ' ' + urlString + ' (' + res.statusCode + ') - ' + (end - start) + 'ms');
-    console.dir(res.headers, {colors: true});
     if (responded) return res.resume();
     responded = true;
     var result = new Response(res.statusCode, res.headers, res);
