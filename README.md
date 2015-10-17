@@ -86,7 +86,7 @@ A cache may also define any of the methods from `lib/cache-utils.js` to override
 
 ## Proxy Server
 
-The module takes the environemnt variable `http_proxy` as a proxy-server url if is available.
+The module takes the environment variable `http_proxy` as a proxy-server url if is available.
 
 ## License
 
