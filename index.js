@@ -9,7 +9,7 @@ var PassThrough = require('stream').PassThrough;
 var Response = require('http-response-object');
 var caseless = require('caseless');
 var cacheUtils = require('./lib/cache-utils.js');
-var env = require('process').env;
+var env = process.env;
 var builtinCaches = {
   memory: new (require('./lib/memory-cache.js'))(),
   file: new (require('./lib/file-cache.js'))(__dirname + '/cache')
