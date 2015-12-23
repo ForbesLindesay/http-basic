@@ -3,7 +3,7 @@
 Simple wrapper arround http.request/https.request
 
 [![Build Status](https://img.shields.io/travis/ForbesLindesay/http-basic/master.svg)](https://travis-ci.org/ForbesLindesay/http-basic)
-[![Dependency Status](https://img.shields.io/gemnasium/ForbesLindesay/http-basic.svg)](https://gemnasium.com/ForbesLindesay/http-basic)
+[![Dependency Status](https://img.shields.io/david/ForbesLindesay/http-basic.svg)](https://david-dm.org/ForbesLindesay/http-basic)
 [![NPM version](https://img.shields.io/npm/v/http-basic.svg)](https://www.npmjs.org/package/http-basic)
 
 ## Installation
