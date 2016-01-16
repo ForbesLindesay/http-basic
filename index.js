@@ -120,7 +120,8 @@ function request(method, url, options, callback) {
         // This fixes a problem where a POST to http://example.com
         // might result in a GET to http://example.co.uk that includes "content-length"
         // as a header
-        options.headers = {};
+        if (duplex)
+          options.headers = {};
         return request(duplex ? 'GET' : method, resolveUrl(urlString, res.headers.location), options, callback);
       } else {
         return callback(null, res);
