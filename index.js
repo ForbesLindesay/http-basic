@@ -116,15 +116,22 @@ function request(method, url, options, callback) {
         if (options.maxRedirects && options.maxRedirects !== Infinity) {
           options.maxRedirects--;
         }
-        // don't maintain headers (except for "user-agent") through redirects
+        // don't maintain headers through redirects
         // This fixes a problem where a POST to http://example.com
         // might result in a GET to http://example.co.uk that includes "content-length"
         // as a header
-        var ua = caseless(options.headers).get('user-agent');
-        options.headers = {};
-        if (ua) {
-          options.headers['user-agent'] = ua;
+        var headers = caseless(options.headers), redirectHeaders = {};
+        if (options.allowRedirectHeaders) {
+          var headerName, headerValue;
+          for (var i = 0; i < options.allowRedirectHeaders.length; i++) {
+            headerName = options.allowRedirectHeaders[i];
+            headerValue = headers.get(headerName);
+            if (headerValue) {
+              redirectHeaders[headerName] = headerValue;
+            }
+          }
         }
+        options.headers = redirectHeaders;
         return request(duplex ? 'GET' : method, resolveUrl(urlString, res.headers.location), options, callback);
       } else {
         return callback(null, res);

@@ -39,6 +39,7 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
  - `agent` - (default: `false`) controlls keep-alive (see http://nodejs.org/api/http.html#http_http_request_options_callback)
  - `followRedirects` - (default: `false`) - if true, redirects are followed (note that this only affects the result in the callback)
  - `maxRedirects` - (default: `Infinity`) - limit the number of redirects allowed.
+ - `allowRedirectHeaders` (default: `null`) - an array of headers allowed for redirects (none if `null`).
  - `gzip` (default: `false`) - automatically accept gzip and deflate encodings.  This is kept completely transparent to the user.
  - `cache` - (default: `null`) - `'memory'` or `'file'` to use the default built in caches or you can pass your own cache implementation.
  - `timeout` (default: `false`) - times out if no response is returned within the given number of milliseconds.
