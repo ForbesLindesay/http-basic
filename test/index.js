@@ -79,3 +79,11 @@ request('GET', CACHED, {cache: 'file'}, function (err, res) {
     }, 1000);
   });
 });
+
+request('GET', 'https://api.github.com/repos/isaacs/npm', {allowRedirectHeaders: ['User-Agent'], followRedirects: true, headers: {'User-Agent': 'http-basic'}}, function (err, res) {
+  if (err) throw err;
+
+  console.log('response I');
+  assert(res.statusCode === 200);
+  res.body.resume();
+});
