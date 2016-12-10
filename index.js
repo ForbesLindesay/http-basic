@@ -4,10 +4,12 @@ var parseUrl = require('url').parse;
 var resolveUrl = require('url').resolve;
 var zlib = require('zlib');
 var protocols  = {http: require('http'), https: require('https')};
+var proxyAgents = {http: require('http-proxy-agent'), https: require('https-proxy-agent')};
 var PassThrough = require('stream').PassThrough;
 var Response = require('http-response-object');
 var caseless = require('caseless');
 var cacheUtils = require('./lib/cache-utils.js');
+var env = process.env;
 var builtinCaches = {
   memory: new (require('./lib/memory-cache.js'))(),
   file: new (require('./lib/file-cache.js'))(__dirname + '/cache')
@@ -231,14 +233,25 @@ function request(method, url, options, callback) {
 
   var responded = false;
 
-  var req = protocols[url.protocol.replace(/\:$/, '')].request({
+  var params = {
     host: url.hostname,
     port: url.port,
     path: url.path,
     method: method,
     headers: rawHeaders,
     agent: agent
-  }, function (res) {
+  }
+
+  if (options.proxy === null || options.proxy === undefined || options.proxy === '') {
+    options.proxy = 'http_proxy' in env ? env.http_proxy : false;
+  }
+
+  if (options.proxy) {
+    var proxyAgent = new proxyAgents[url.protocol.replace(/\:$/, '')](options.proxy);
+    params.agent = proxyAgent;
+  }
+
+  var req = protocols[url.protocol.replace(/\:$/, '')].request(params, function (res) {
     var end = Date.now();
     if (responded) return res.resume();
     responded = true;

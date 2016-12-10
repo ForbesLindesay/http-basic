@@ -47,6 +47,7 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
  - `retry` (default: `false`) - retry GET requests.  Set this to `true` to retry when the request errors or returns a status code greater than or equal to 400 (can also be a function that takes `(err, req, attemptNo) => shouldRetry`)
  - `retryDelay` (default: `200`) - the delay between retries (can also be set to a function that takes `(err, res, attemptNo) => delay`)
  - `maxRetries` (default: `5`) - the number of times to retry before giving up.
+ - `proxy` (default: `none`) - a proxy-server url to use for all requests, overwrites the agent option
 
 **callback:**
 
@@ -83,6 +84,10 @@ A cached response object is an object with the following properties:
 `setResponse` should just swallow any errors it has (or resport them using `console.warn`).
 
 A cache may also define any of the methods from `lib/cache-utils.js` to override behaviour for what gets cached.  It is currently still only possible to cache "get" requests, although this could be changed.
+
+## Proxy Server
+
+The module takes the environment variable `http_proxy` as a proxy-server url if is available.
 
 ## License
 
