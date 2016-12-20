@@ -153,8 +153,13 @@ function request(method, url, options, callback) {
           res.fromCache = true;
           res.fromNotModified = false;
           return callback(null, res);
-        } else if (cachedResponse.headers['etag']) {
-          headers.set('If-None-Match', cachedResponse.headers['etag']);
+        } else {
+          if (cachedResponse.headers['etag']) {
+            headers.set('If-None-Match', cachedResponse.headers['etag']);
+          }
+          if (cachedResponse.headers['last-modified']) {
+            headers.set('If-Modified-Since', cachedResponse.headers['last-modified']);
+          }
         }
       }
       request('GET', urlString, {
