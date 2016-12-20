@@ -20,8 +20,6 @@ var cacheControlServer = http.createServer(serveStatic(__dirname, {
   fallthrough: false
 }));
 
-cacheControlServer.unref();
-
 cacheControlServer.listen(3293, function onListen() {
   request('GET', CACHED_BY_CACHE_CONTROL, {cache: 'memory'}, function (err, res) {
     if (err) throw err;
@@ -32,15 +30,17 @@ cacheControlServer.listen(3293, function onListen() {
     assert(res.fromNotModified === undefined);
     res.body.on('data', function () {});
     res.body.on('end', function () {
-      request('GET', CACHED_BY_CACHE_CONTROL, {cache: 'memory'}, function (err, res) {
-        if (err) throw err;
+      setTimeout(function () {
+        request('GET', CACHED_BY_CACHE_CONTROL, {cache: 'memory'}, function (err, res) {
+          if (err) throw err;
 
-        console.log('response F (from memory cache)');
-        assert(res.statusCode === 200);
-        assert(res.fromCache === true);
-        assert(res.fromNotModified === false);
-        res.body.resume();
-      });
+          console.log('response F (from memory cache)');
+          assert(res.statusCode === 200);
+          assert(res.fromCache === true);
+          assert(res.fromNotModified === false);
+          res.body.resume();
+        });
+      }, 25);
     });
   });
 
@@ -68,6 +68,8 @@ cacheControlServer.listen(3293, function onListen() {
   });
 });
 
+cacheControlServer.unref();
+
 
 var CACHED_BY_ETAGS = 'http://localhost:4294/index.js';
 
@@ -77,8 +79,6 @@ var etagsServer = http.createServer(serveStatic(__dirname, {
   cacheControl: false,
   fallthrough: false
 }));
-
-etagsServer.unref();
 
 etagsServer.listen(4294, function onListen() {
   request('GET', CACHED_BY_ETAGS, {cache: 'memory'}, function (err, res) {
@@ -90,15 +90,17 @@ etagsServer.listen(4294, function onListen() {
     assert(res.fromNotModified === undefined);
     res.body.on('data', function () {});
     res.body.on('end', function () {
-      request('GET', CACHED_BY_ETAGS, {cache: 'memory'}, function (err, res) {
-        if (err) throw err;
+      setTimeout(function () {
+        request('GET', CACHED_BY_ETAGS, {cache: 'memory'}, function (err, res) {
+          if (err) throw err;
 
-        console.log('response J (from memory cache)');
-        assert(res.statusCode === 200);
-        assert(res.fromCache === true);
-        assert(res.fromNotModified === true);
-        res.body.resume();
-      });
+          console.log('response J (from memory cache)');
+          assert(res.statusCode === 200);
+          assert(res.fromCache === true);
+          assert(res.fromNotModified === true);
+          res.body.resume();
+        });
+      }, 25);
     });
   });
 
@@ -126,6 +128,8 @@ etagsServer.listen(4294, function onListen() {
   });
 });
 
+etagsServer.unref();
+
 
 var CACHED_BY_LAST_MODIFIED = 'http://localhost:5295/index.js';
 
@@ -135,8 +139,6 @@ var lastModifiedServer = http.createServer(serveStatic(__dirname, {
   cacheControl: false,
   fallthrough: false
 }));
-
-lastModifiedServer.unref();
 
 lastModifiedServer.listen(5295, function onListen() {
   request('GET', CACHED_BY_LAST_MODIFIED, {cache: 'memory'}, function (err, res) {
@@ -148,15 +150,17 @@ lastModifiedServer.listen(5295, function onListen() {
     assert(res.fromNotModified === undefined);
     res.body.on('data', function () {});
     res.body.on('end', function () {
-      request('GET', CACHED_BY_LAST_MODIFIED, {cache: 'memory'}, function (err, res) {
-        if (err) throw err;
+    	setTimeout(function () {
+        request('GET', CACHED_BY_LAST_MODIFIED, {cache: 'memory'}, function (err, res) {
+          if (err) throw err;
 
-        console.log('response N (from memory cache)');
-        assert(res.statusCode === 200);
-        assert(res.fromCache === true);
-        assert(res.fromNotModified === true);
-        res.body.resume();
-      });
+          console.log('response N (from memory cache)');
+          assert(res.statusCode === 200);
+          assert(res.fromCache === true);
+          assert(res.fromNotModified === true);
+          res.body.resume();
+        });
+      }, 25);
     });
   });
 
@@ -183,3 +187,5 @@ lastModifiedServer.listen(5295, function onListen() {
     });
   });
 });
+
+lastModifiedServer.unref();
