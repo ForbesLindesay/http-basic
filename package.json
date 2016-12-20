@@ -19,9 +19,12 @@
     "concat-stream": "^1.4.6",
     "http-response-object": "^1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "rimraf": "^2.5.4",
+    "serve-static": "^1.11.1"
+  },
   "scripts": {
-    "test": "node test"
+    "test": "node test/index && node test/cache"
   },
   "repository": {
     "type": "git",
