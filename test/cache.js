@@ -75,7 +75,6 @@ var etagsServer = http.createServer(serveStatic(__dirname, {
   etag: true,
   lastModified: false,
   cacheControl: false,
-  cacheControl: false,
   fallthrough: false
 }));
 
