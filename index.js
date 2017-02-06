@@ -52,12 +52,15 @@ function request(method, url, options, callback) {
   if (typeof cache === 'string' && cache in builtinCaches) {
     cache = builtinCaches[cache];
   }
-  if (cache && !(typeof cache === 'object' && typeof cache.getResponse === 'function' && typeof cache.setResponse === 'function')) {
-    throw new TypeError(cache + ' is not a valid cache, caches must have `getResponse` and `setResponse` methods.');
+  if (cache && !(typeof cache === 'object' && typeof cache.getResponse === 'function' && typeof cache.setResponse === 'function' && typeof cache.invalidateResponse === 'function')) {
+    throw new TypeError(cache + ' is not a valid cache, caches must have `getResponse`, `setResponse` and `invalidateResponse` methods.');
   }
 
+  var ignoreFailedInvalidation = options.ignoreFailedInvalidation;
+  
   var duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
-
+  var unsafe = !(method === 'GET' || method === 'OPTIONS' || method === 'HEAD');
+  
   if (options.gzip) {
     headers.set('Accept-Encoding', headers.has('Accept-Encoding') ? headers.get('Accept-Encoding') + ',gzip,deflate' : 'gzip,deflate');
     return request(method, urlString, {
@@ -249,7 +252,17 @@ function request(method, url, options, callback) {
     responded = true;
     var result = new Response(res.statusCode, res.headers, res);
     result.url = urlString;
-    callback(null, result);
+    if (cache && unsafe && res.statusCode<400){
+      cache.invalidateResponse(urlString, function (err) {
+        if (err && !ignoreFailedInvalidation) {
+          callback(new Error('Error invalidating the cache for' + urlString + ': ' + err.message), result);
+        } else {
+          callback(null, result);
+        }
+      });
+    } else {
+      callback(null, result);
+    }
   }).on('error', function (err) {
     if (responded) return;
     responded = true;
@@ -273,6 +286,7 @@ function request(method, url, options, callback) {
   if (options.timeout) {
     setTimeout(onTimeout, options.timeout);
   }
+
   if (duplex) {
     return req;
   } else {
