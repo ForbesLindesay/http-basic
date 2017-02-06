@@ -91,7 +91,7 @@ function invalidationScenario(traceId, method, cacheType, isDuplex) {
     var req = request(method, resourceUri(traceId), options, function (err, res) {
       if (err) throw err;
           
-      console.log('response '+traceId+'.1 ('+method+' invalidates '+cacheType+' cache)');
+      console.log('response '+traceId+'.1 ('+method+' invalidates ' + cacheType + ' cache)');
       res.body.on('data', function() {});
       res.body.on('end', function() {
         
@@ -119,7 +119,7 @@ function invalidationScenario__failedUnsafeRequest(traceId, method, cacheType, i
     var req = request(method, resourceUri(traceId), options, function (err, res) {
       if (err) throw err;
           
-      console.log('response '+traceId+'.1 ('+method+' fails, so does not invalidate '+cacheType+' cache)');
+      console.log('response '+traceId+'.1 ('+method+' fails, so does not invalidate ' + cacheType + ' cache)');
       res.body.on('data', function() {});
       res.body.on('end', function() {
         
@@ -150,7 +150,7 @@ function invalidationScenario__failedCacheInvalidation(traceId, method, cacheObj
     var req = request(method, resourceUri(traceId), options, function (err, res) {
       if (ignoreFailedInvalidation && err) throw err;
          
-      console.log('response '+traceId+'.1 (Cache invalidation fails after '+method+')');
+      console.log('response '+traceId+'.1 (Cache invalidation fails after ' + method + ')');
       res.body.on('data', function() {});
       res.body.on('end', function() {
         
