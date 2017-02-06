@@ -252,7 +252,7 @@ function request(method, url, options, callback) {
     responded = true;
     var result = new Response(res.statusCode, res.headers, res);
     result.url = urlString;
-    if (cache && unsafe && res.statusCode<400){
+    if (cache && unsafe && res.statusCode < 400){
       cache.invalidateResponse(urlString, function (err) {
         if (err && !ignoreFailedInvalidation) {
           callback(new Error('Error invalidating the cache for' + urlString + ': ' + err.message), result);
