@@ -8,5 +8,5 @@ function InvalidationFailCache(){
 }
 InvalidationFailCache.prototype = new MemoryCache();
 InvalidationFailCache.prototype.invalidateResponse = function (url, callback) {
-    callback( new Error( 'Invalidation failed' ) );
+    callback(new Error('Invalidation failed'));
 };
