@@ -8,7 +8,7 @@ function InvalidationFailCache(){
   MemoryCache.call(this);
   InvalidationFailCache.constructor = InvalidationFailCache;
 }
-InvalidationFailCache.prototype = Object.create(MemroyCache.prototype);
+InvalidationFailCache.prototype = Object.create(MemoryCache.prototype);
 InvalidationFailCache.prototype.constructor = InvalidationFailCache;
 
 InvalidationFailCache.prototype.invalidateResponse = function (url, callback) {
