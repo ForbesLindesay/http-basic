@@ -47,6 +47,7 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
  - `retry` (default: `false`) - retry GET requests.  Set this to `true` to retry when the request errors or returns a status code greater than or equal to 400 (can also be a function that takes `(err, req, attemptNo) => shouldRetry`)
  - `retryDelay` (default: `200`) - the delay between retries (can also be set to a function that takes `(err, res, attemptNo) => delay`)
  - `maxRetries` (default: `5`) - the number of times to retry before giving up.
+ - `ignoreFailedInvalidation` (default: `false`) - whether the cache should swallow errors if there is a problem removing a cached response. Note that enabling this setting may result in incorrect, cached data being returned to the user.
 
 **callback:**
 
@@ -65,10 +66,11 @@ Otherwise, it returns a writable stream for the body of the request.
 
 ## Implementing a Cache
 
-A `Cache` is an object with two methods:
+A `Cache` is an object with three methods:
 
  - `getResponse(url, callback)` - retrieve a cached response object
  - `setResponse(url, response)` - cache a response object
+ - `invalidateResponse(url, callback)` - remove a response which is no longer valid
 
 A cached response object is an object with the following properties:
 
@@ -81,6 +83,8 @@ A cached response object is an object with the following properties:
 `getResponse` should call the callback with an optional error and either `null` or a cached response object, depending on whether the url can be found in the cache.  Only `GET`s are cached.
 
 `setResponse` should just swallow any errors it has (or resport them using `console.warn`).
+
+`invalidateResponse` should call the callback with an optional error if it is unable to invalidate a response.
 
 A cache may also define any of the methods from `lib/cache-utils.js` to override behaviour for what gets cached.  It is currently still only possible to cache "get" requests, although this could be changed.
 

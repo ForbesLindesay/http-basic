@@ -25,7 +25,7 @@
     "serve-static": "^1.11.1"
   },
   "scripts": {
-    "test": "node test/index && node test/cache"
+    "test": "node test/index && node test/cache && node test/cache-invalidation"
   },
   "repository": {
     "type": "git",
