@@ -6,13 +6,10 @@ var http = require('http');
 var rimraf = require('rimraf');
 var path = require('path');
 var InvalidationFailureCache = require('../test-fixture/invalidation-failure-cache');
-var async = require('async');
 
 rimraf.sync(path.resolve(__dirname, '..', 'cache'));
 
-var PORT = 3294;
-var HEADERS__AUTH_JON = { 'Authorization': 'Basic am9uOlBAc3N3MHJk' }; // jon:P@ssw0rd
-var HEADERS__AUTH_SAM = { 'Authorization': 'Basic c2FtOlBAc3N3MHJk' }; // sam:P@ssw0rd
+var PORT = 3296;
 
 var cacheControlServer = http.createServer(function(req, res){
   
@@ -22,9 +19,7 @@ var cacheControlServer = http.createServer(function(req, res){
   } else {
     res.statusCode = 200;
     if(req.method === "GET"){
-      // the test resource is cacheable, but Varys in relation to the Authorization header
       res.setHeader('cache-control','public,max-age=60');
-      res.setHeader('Vary','Authorization');
       res.end('These are my favourite things');
     } else {
       res.end();
@@ -40,56 +35,42 @@ function resourceUri(traceId) {
 }
 
 function shouldNotBeCached(traceId, cache) {
-  async.eachOf([HEADERS__AUTH_JON, HEADERS__AUTH_SAM], function(userHeaders, index, next) {
-  
-    request('GET', resourceUri(traceId), {cache: cache, headers: userHeaders}, function (err, res) {
-      if (err) throw err;
+  request('GET', resourceUri(traceId), {cache: cache}, function (err, res) {
+    if (err) throw err;
 
-      console.log('response ' + traceId + '.2.' + index + ' (should no longer be cached)');
-      assert(res.statusCode === 200);
-      assert(res.fromCache === undefined);
-      res.body.resume();
-    });
-    
+    console.log('response ' + traceId + '.2 (should no longer be cached)');
+    assert(res.statusCode === 200);
+    assert(res.fromCache === undefined);
+    res.body.resume();
   });
   
 }
 
 function shouldStillBeCached(traceId, cache) {
-  async.eachOf([HEADERS__AUTH_JON, HEADERS__AUTH_SAM], function(userHeaders, index, next) {
-     
-    request('GET', resourceUri(traceId), {cache: cache, headers: userHeaders}, function (err, res) {
-      if (err) throw err;
+  request('GET', resourceUri(traceId), {cache: cache}, function (err, res) {
+    if (err) throw err;
 
-      console.log('response ' + traceId + '.2 (should still be cached)');
-      assert(res.statusCode === 200);
-      assert(res.fromCache === true, 'Should be coming from the cache');
-      res.body.resume();
-    });
-    
+    console.log('response ' + traceId + '.2 (should still be cached)');
+    assert(res.statusCode === 200);
+    assert(res.fromCache === true);
+    res.body.resume();
   });
   
 }
 
-// we arrange by GETting 2 distinct cacheable representations (on per user)
 function arrange(traceId, description, cache, callback) {
-  async.eachOf([HEADERS__AUTH_JON, HEADERS__AUTH_SAM], function(userHeaders, index, next) {
-     
-    request('GET', resourceUri(traceId), {cache: cache, headers: userHeaders}, function (err, res) {
-      if (err) throw err;
-  
-      console.log('response ' + traceId + '.0.' + index + ' ' + description);
-      assert(res.statusCode === 200);
-      assert(res.fromCache === undefined);
-      assert(res.fromNotModified === undefined);
-      res.body.on('data', function () {});
-      res.body.on('end', function () {
-        setTimeout(next, 25);
-      } );
-    });
-    
-  }, callback);
-  
+  request('GET', resourceUri(traceId), {cache: cache}, function (err, res) {
+    if (err) throw err;
+
+    console.log('response ' + traceId + '.0 ' + description);
+    assert(res.statusCode === 200);
+    assert(res.fromCache === undefined);
+    assert(res.fromNotModified === undefined);
+    res.body.on('data', function () {});
+    res.body.on('end', function () {
+      setTimeout(callback, 25);
+    } );
+  });
   return {
     
     assertIsNotCached: function() { shouldNotBeCached(traceId, cache); },
@@ -102,7 +83,7 @@ function arrange(traceId, description, cache, callback) {
 function invalidationScenario(traceId, method, cacheType, isDuplex) {
 
   var scenario = arrange(traceId, '(populate memory cache prior to ' + method + ')', cacheType, function() {
-
+            
     var options = {
       cache: cacheType,
       headers: { 'content-type': 'text/plain' }
@@ -190,18 +171,11 @@ function invalidationScenario__failedCacheInvalidation(traceId, method, cacheObj
 cacheControlServer.listen(PORT, function onListen() {
 
   // unsafe methods should invalidate the cache  
-  invalidationScenario('P', 'POST', 'memory', true);
-  invalidationScenario('Q', 'POST', 'file', true);
-  invalidationScenario('R', 'PUT', 'memory', true);
-  invalidationScenario('S', 'PUT', 'file', true);
-  invalidationScenario('T', 'DELETE', 'memory', false);
-  invalidationScenario('U', 'DELETE', 'file', false);
+  invalidationScenario('L.P', 'POST', 'legacy', true);
+  invalidationScenario('L.R', 'PUT', 'legacy', true);
+  invalidationScenario('L.T', 'DELETE', 'legacy', false);
   // if the DELETE fails, the cache should not be invalidated
-  invalidationScenario__failedUnsafeRequest('V', 'DELETE', 'memory', false);
-  // if the cache fails to invalidate, should throw an error
-  invalidationScenario__failedCacheInvalidation('W', 'DELETE', new InvalidationFailureCache(), false, false);
-  // if the cache fails to invalidate, but the ignoreFailedInvalidation option is set, should still be cached
-  invalidationScenario__failedCacheInvalidation('X', 'DELETE', new InvalidationFailureCache(), false, true);
+  invalidationScenario__failedUnsafeRequest('L.V', 'DELETE', 'legacy', false);
   
 });
 
