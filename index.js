@@ -9,6 +9,7 @@ var Response = require('http-response-object');
 var caseless = require('caseless');
 var cacheUtils = require('./lib/cache-utils.js');
 var builtinCaches = {
+  legacy: new (require('./lib/legacy-memory-cache.js'))(),
   memory: new (require('./lib/memory-cache.js'))(),
   file: new (require('./lib/file-cache.js'))(__dirname + '/cache')
 };
@@ -55,7 +56,8 @@ function request(method, url, options, callback) {
   if (cache && !(typeof cache === 'object' && typeof cache.getResponse === 'function' && typeof cache.setResponse === 'function' && typeof cache.invalidateResponse === 'function')) {
     throw new TypeError(cache + ' is not a valid cache, caches must have `getResponse`, `setResponse` and `invalidateResponse` methods.');
   }
-
+  var cacheWithVary = cache && cache.getResponse.length === 3;
+  
   var ignoreFailedInvalidation = options.ignoreFailedInvalidation;
   
   var duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
@@ -143,9 +145,18 @@ function request(method, url, options, callback) {
       }
     });
   }
+  
+
   if (cache && method === 'GET') {
     var timestamp = Date.now();
-    return cache.getResponse(urlString, function (err, cachedResponse) {
+    
+    var cacheGetStrategy = function(callback) {
+      return cacheWithVary
+        ? cache.getResponse(urlString, rawHeaders, callback)
+        : cache.getResponse(urlString, callback);
+    };
+    
+    return cacheGetStrategy(function (err, cachedResponse) {
       if (err) {
         console.warn('Error reading from cache: ' + err.message);
       }
