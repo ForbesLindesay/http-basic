@@ -1,5 +1,7 @@
 # http-basic
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ForbesLindesay/http-basic.svg)](https://greenkeeper.io/)
+
 Simple wrapper arround http.request/https.request
 
 [![Build Status](https://img.shields.io/travis/ForbesLindesay/http-basic/master.svg)](https://travis-ci.org/ForbesLindesay/http-basic)
