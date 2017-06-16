@@ -15,16 +15,23 @@
     "cache-control"
   ],
   "dependencies": {
+    "@types/concat-stream": "^1.6.0",
+    "@types/node": "^7.0.31",
     "caseless": "~0.11.0",
     "concat-stream": "^1.4.6",
-    "http-response-object": "^1.0.0",
+    "http-response-object": "^2.0.3",
     "parse-cache-control": "^1.0.1"
   },
   "devDependencies": {
+    "flowgen2": "^2.0.0-alpha.7",
     "rimraf": "^2.5.4",
-    "serve-static": "^1.11.1"
+    "serve-static": "^1.11.1",
+    "typescript": "^2.3.4"
   },
   "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "tsc && flowgen lib/**/*",
+    "pretest": "npm run build",
     "test": "node test/index && node test/cache && node test/cache-invalidation"
   },
   "repository": {
