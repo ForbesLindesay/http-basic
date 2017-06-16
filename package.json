@@ -3,7 +3,7 @@
   "version": "5.0.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "files":[
+  "files": [
     "lib"
   ],
   "description": "Very low level wrapper arround http.request/https.request",
@@ -28,7 +28,7 @@
     "parse-cache-control": "^1.0.1"
   },
   "devDependencies": {
-    "flowgen2": "^2.0.0-alpha.7",
+    "flowgen2": "^2.0.0-alpha.8",
     "rimraf": "^2.5.4",
     "serve-static": "^1.11.1",
     "typescript": "^2.3.4"
