@@ -1,6 +1,8 @@
 {
   "name": "http-basic",
   "version": "4.0.1",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "description": "Very low level wrapper arround http.request/https.request",
   "keywords": [
     "http",
