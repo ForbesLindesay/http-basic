@@ -3,6 +3,9 @@
   "version": "4.0.1",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files":[
+    "lib"
+  ],
   "description": "Very low level wrapper arround http.request/https.request",
   "keywords": [
     "http",
@@ -34,7 +37,7 @@
     "prepublishOnly": "npm run build",
     "build": "tsc && flowgen lib/**/*",
     "pretest": "npm run build",
-    "test": "node test/index && node test/cache && node test/cache-invalidation"
+    "test": "node test/index && node test/cache && node test/cache-invalidation && rimraf lib/cache"
   },
   "repository": {
     "type": "git",
