@@ -14,7 +14,7 @@ interface Options {
   ignoreFailedInvalidation?: boolean;
   maxRedirects?: number;
   maxRetries?: number;
-  retry?: boolean;
+  retry?: boolean | ((err: NodeJS.ErrnoException | null, res: Response<NodeJS.ReadableStream> | void, attemptNumber: number) => boolean);
   retryDelay?: number | ((err: NodeJS.ErrnoException | null, res: Response<NodeJS.ReadableStream> | void, attemptNumber: number) => number);
   socketTimeout?: number;
   timeout?: number;
