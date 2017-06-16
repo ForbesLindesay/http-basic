@@ -1,6 +1,6 @@
 {
   "name": "http-basic",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files":[
