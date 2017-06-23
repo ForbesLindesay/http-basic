@@ -9,7 +9,7 @@ var path = require('path');
 var url = require('url');
 var qs = require('querystring');
 
-rimraf.sync(path.resolve(__dirname, '..', 'cache'));
+rimraf.sync(path.resolve(__dirname, '..', 'lib', 'cache'));
 
 
 var CACHED_BY_CACHE_CONTROL = 'http://localhost:3293/index.js';

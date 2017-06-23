@@ -1,6 +1,6 @@
 'use strict';
 
-var MemoryCache = require('../lib/memory-cache');
+var MemoryCache = require('../lib/MemoryCache').default;
 
 module.exports = InvalidationFailCache;
 

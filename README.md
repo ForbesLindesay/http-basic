@@ -48,6 +48,9 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
  - `retryDelay` (default: `200`) - the delay between retries (can also be set to a function that takes `(err, res, attemptNo) => delay`)
  - `maxRetries` (default: `5`) - the number of times to retry before giving up.
  - `ignoreFailedInvalidation` (default: `false`) - whether the cache should swallow errors if there is a problem removing a cached response. Note that enabling this setting may result in incorrect, cached data being returned to the user.
+ - `isMatch` - `(requestHeaders: Headers, cachedResponse: CachedResponse, defaultValue: boolean) => boolean` - override the default behaviour for testing whether a cached response matches a request.
+ - `isExpired` - `(cachedResponse: CachedResponse, defaultValue: boolean) => boolean` - override the default behaviour for testing whether a cached response has expired
+ - `canCache` - `(res: Response<NodeJS.ReadableStream>, defaultValue: boolean) => boolean` - override the default behaviour for testing whether a response can be cached
 
 **callback:**
 
