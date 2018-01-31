@@ -1,3 +1,2 @@
-export type Headers = {
-  readonly [name: string]: string | string[],
-};
+import { IncomingHttpHeaders } from 'http';
+export type Headers = IncomingHttpHeaders;

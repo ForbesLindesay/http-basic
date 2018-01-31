@@ -2,6 +2,7 @@ import * as cacheUtils from './cache-utils';
 import FileCache from './FileCache';
 import MemoryCache from './MemoryCache';
 import { Callback } from './Callback';
+import {CachedResponse} from './CachedResponse';
 import {
   ClientRequest,
   IncomingMessage,
@@ -16,6 +17,7 @@ import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import { PassThrough } from 'stream';
 import { request as requestHttps } from 'https';
 import Response = require('http-response-object');
+import {URL} from 'url';
 
 const caseless = require('caseless');
 const fileCache = new FileCache(__dirname + '/cache');
@@ -30,9 +32,9 @@ function requestProtocol(protocol: string, options: RequestOptions, callback?: (
   throw new Error('Unsupported protocol ' + protocol);
 }
 
-function request(method: HttpVerb, url: string, options: Options | null | void, callback: Callback): void | NodeJS.WritableStream;
-function request(method: HttpVerb, url: string, callback: Callback): void | NodeJS.WritableStream;
-function request(method: HttpVerb, url: string, options?: Options | Callback | null, callback?: Callback | null): void | NodeJS.WritableStream {
+function request(method: HttpVerb, url: string | URL, options: Options | null | void, callback: Callback): void | NodeJS.WritableStream;
+function request(method: HttpVerb, url: string | URL, callback: Callback): void | NodeJS.WritableStream;
+function request(method: HttpVerb, url: string | URL, options?: Options | Callback | null | void, callback?: Callback | null): void | NodeJS.WritableStream {
   if (typeof options === 'function') {
     callback = options;
     options = null;
@@ -46,7 +48,9 @@ function request(method: HttpVerb, url: string, options?: Options | Callback | n
   if (typeof callback !== 'function') {
     throw new TypeError('callback must be a function');
   }
-  return _request(method, url, options, callback);
+  return _request(method, (
+    (url && typeof url === 'object') ? url.href : url
+  ), options, callback);
 }
 function _request(method: HttpVerb, url: string, options: Options, callback: Callback): void | NodeJS.WritableStream {
   const start = Date.now();
@@ -54,7 +58,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     throw new TypeError('The method must be a string.');
   }
   if (typeof url !== 'string') {
-    throw new TypeError('The URL/path must be a string.');
+    throw new TypeError('The URL/path must be a string or a URL object.');
   }
 
   method = (method.toUpperCase() as any);
@@ -294,7 +298,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     if (timeout !== null) clearTimeout(timeout);
     var result = new Response(res.statusCode || 0, res.headers, res, url);
     if (cache && unsafe && res.statusCode && res.statusCode < 400){
-      (cache as ICache).invalidateResponse(url, (err: Error) => {
+      (cache as ICache).invalidateResponse(url, (err: Error | null) => {
         if (err && !ignoreFailedInvalidation) {
           callback(new Error('Error invalidating the cache for' + url + ': ' + err.message), result);
         } else {
@@ -341,4 +345,14 @@ function isRedirect(statusCode: number): boolean {
   return statusCode === 301 || statusCode === 302 || statusCode === 303 || statusCode === 307 || statusCode === 308;
 }
 
-export = request;
+export default request;
+export {HttpVerb};
+export {Options};
+export {Callback};
+export {Response};
+export {CachedResponse};
+export {ICache};
+
+module.exports = request;
+module.exports.default = request;
+module.exports.Response = Response;
