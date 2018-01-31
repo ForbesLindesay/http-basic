@@ -278,6 +278,8 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
 
   var responded = false;
 
+  var timeout: NodeJS.Timer | null = null;
+
   var req = requestProtocol(protocol, {
     host: urlObject.hostname,
     port: urlObject.port == null ? undefined : +urlObject.port,
@@ -289,6 +291,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     var end = Date.now();
     if (responded) return res.resume();
     responded = true;
+    if (timeout !== null) clearTimeout(timeout);
     var result = new Response(res.statusCode || 0, res.headers, res, url);
     if (cache && unsafe && res.statusCode && res.statusCode < 400){
       (cache as ICache).invalidateResponse(url, (err: Error) => {
@@ -304,12 +307,14 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
   }).on('error', function (err) {
     if (responded) return;
     responded = true;
+    if (timeout !== null) clearTimeout(timeout);
     callback(err);
   });
 
   function onTimeout() {
     if (responded) return;
     responded = true;
+    if (timeout !== null) clearTimeout(timeout);
     req.abort();
     const duration = Date.now() - start;
     const err: any = new Error('Request timed out after ' + duration + 'ms');
@@ -321,7 +326,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     req.setTimeout(options.socketTimeout, onTimeout);
   }
   if (options.timeout) {
-    setTimeout(onTimeout, options.timeout);
+    timeout = setTimeout(onTimeout, options.timeout);
   }
 
   if (duplex) {
