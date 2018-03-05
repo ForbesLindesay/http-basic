@@ -72,7 +72,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
   var rawHeaders = options.headers || {};
   var headers = caseless(rawHeaders);
   if (urlObject.auth) {
-    headers.set('Authorization', 'Basic ' + (new Buffer(urlObject.auth)).toString('base64'));
+    headers.set('Authorization', 'Basic ' + (Buffer.from(urlObject.auth)).toString('base64'));
   }
   var agent = 'agent' in options ? options.agent : false;
 

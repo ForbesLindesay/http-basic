@@ -39,6 +39,9 @@
     "pretest": "npm run build",
     "test": "node test/index && node test/cache && node test/cache-invalidation && rimraf lib/cache"
   },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ForbesLindesay/http-basic.git"
