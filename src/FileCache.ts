@@ -18,7 +18,7 @@ function jsonParse(data: string, cb: (err: Error | null, result?: any) => void):
 }
 
 function getCacheKey(url: string): string {
-  var hash = createHash('sha512')
+  const hash = createHash('sha512')
   hash.update(url)
   return hash.digest('hex')
 }
@@ -47,8 +47,8 @@ export default class FileCache implements ICache {
   }
 
   setResponse(url: string, response: CachedResponse): void {
-    var key = resolve(this._location, getCacheKey(url));
-    var errored = false;
+    const key = resolve(this._location, getCacheKey(url));
+    let errored = false;
 
     fs.mkdir(this._location, function (err) {
       if (err && err.code !== 'EEXIST') {
@@ -76,7 +76,7 @@ export default class FileCache implements ICache {
   }
 
   invalidateResponse(url: string, callback: (err: NodeJS.ErrnoException | null) => void): void {
-    var key = resolve(this._location, getCacheKey(url));
+    const key = resolve(this._location, getCacheKey(url));
     fs.unlink(key + '.json', (err?: NodeJS.ErrnoException | null) => {
       if (err && err.code === 'ENOENT') return callback(null);
       else callback(err || null);

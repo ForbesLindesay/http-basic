@@ -69,14 +69,14 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     throw new TypeError('The protocol "' + protocol + '" is not supported, cannot load "' + url + '"');
   }
 
-  var rawHeaders = options.headers || {};
-  var headers = caseless(rawHeaders);
+  const rawHeaders = options.headers || {};
+  const headers = caseless(rawHeaders);
   if (urlObject.auth) {
     headers.set('Authorization', 'Basic ' + (Buffer.from(urlObject.auth)).toString('base64'));
   }
-  var agent = 'agent' in options ? options.agent : false;
+  const agent = 'agent' in options ? options.agent : false;
 
-  var cache = options.cache;
+  let cache = options.cache;
   if (typeof cache === 'string') {
     if (cache === 'file') {
       cache = fileCache
@@ -88,10 +88,10 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     throw new TypeError(cache + ' is not a valid cache, caches must have `getResponse`, `setResponse` and `invalidateResponse` methods.');
   }
 
-  var ignoreFailedInvalidation = options.ignoreFailedInvalidation;
+  const ignoreFailedInvalidation = options.ignoreFailedInvalidation;
   
-  var duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
-  var unsafe = !(method === 'GET' || method === 'OPTIONS' || method === 'HEAD');
+  const duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
+  const unsafe = !(method === 'GET' || method === 'OPTIONS' || method === 'HEAD');
   
   if (options.gzip) {
     headers.set('Accept-Encoding', headers.has('Accept-Encoding') ? headers.get('Accept-Encoding') + ',gzip,deflate' : 'gzip,deflate');
@@ -180,7 +180,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     });
   }
   if (cache && method === 'GET') {
-    var timestamp = Date.now();
+    const timestamp = Date.now();
     return cache.getResponse(url, function (err, cachedResponse) {
       if (err) {
         console.warn('Error reading from cache: ' + err.message);
@@ -225,14 +225,14 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
         cachedResponse && cachedResponse.body.resume();
         const canCache = cacheUtils.canCache(res);
         if (options.canCache ? options.canCache(res, canCache) : canCache) {
-          var cachedResponseBody = new PassThrough();
-          var resultResponseBody = new PassThrough();
+          const cachedResponseBody = new PassThrough();
+          const resultResponseBody = new PassThrough();
           res.body.on('data', (data: Buffer) => {
             cachedResponseBody.write(data);
             resultResponseBody.write(data);
           });
           res.body.on('end', function () { cachedResponseBody.end(); resultResponseBody.end(); });
-          var resultResponse = new Response(res.statusCode, res.headers, resultResponseBody, url);
+          const resultResponse = new Response(res.statusCode, res.headers, resultResponseBody, url);
           (cache as ICache).setResponse(url, {
             statusCode: res.statusCode,
             headers: res.headers,
@@ -255,7 +255,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
       agent: agent,
       timeout: options.timeout
     }, function (err, res) {
-      var retry = err || !res || res.statusCode >= 400;
+      let retry = err || !res || res.statusCode >= 400;
       if (typeof options.retry === 'function') {
         retry = options.retry(err, res, n + 1);
       }
@@ -263,9 +263,9 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
         retry = false;
       }
       if (retry) {
-        var delay = options.retryDelay;
-        if (typeof options.retryDelay === 'function') {
-          delay = options.retryDelay(err, res, n + 1);
+        let delay = options.retryDelay;
+        if (typeof delay === 'function') {
+          delay = delay(err, res, n + 1);
         }
         delay = delay || 200;
         setTimeout(function () {
@@ -280,11 +280,11 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     return attempt(0);
   }
 
-  var responded = false;
+  let responded = false;
 
-  var timeout: NodeJS.Timer | null = null;
+  let timeout: NodeJS.Timer | null = null;
 
-  var req = requestProtocol(protocol, {
+  const req = requestProtocol(protocol, {
     host: urlObject.hostname,
     port: urlObject.port == null ? undefined : +urlObject.port,
     path: urlObject.path,
@@ -292,11 +292,11 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
     headers: rawHeaders,
     agent: agent
   }, function (res) {
-    var end = Date.now();
+    const end = Date.now();
     if (responded) return res.resume();
     responded = true;
     if (timeout !== null) clearTimeout(timeout);
-    var result = new Response(res.statusCode || 0, res.headers, res, url);
+    const result = new Response(res.statusCode || 0, res.headers, res, url);
     if (cache && unsafe && res.statusCode && res.statusCode < 400){
       (cache as ICache).invalidateResponse(url, (err: Error | null) => {
         if (err && !ignoreFailedInvalidation) {
