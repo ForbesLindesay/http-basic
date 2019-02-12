@@ -90,13 +90,17 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
 
   const ignoreFailedInvalidation = options.ignoreFailedInvalidation;
   
-  const duplex = !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
+  if (options.duplex !== undefined && typeof options.duplex !== 'boolean') {
+    throw new Error('expected options.duplex to be a boolean if provided');
+  }
+  const duplex = options.duplex !== undefined ? options.duplex : !(method === 'GET' || method === 'DELETE' || method === 'HEAD');
   const unsafe = !(method === 'GET' || method === 'OPTIONS' || method === 'HEAD');
   
   if (options.gzip) {
     headers.set('Accept-Encoding', headers.has('Accept-Encoding') ? headers.get('Accept-Encoding') + ',gzip,deflate' : 'gzip,deflate');
     return _request(method, url, {
       allowRedirectHeaders: options.allowRedirectHeaders,
+      duplex: duplex,
       headers: rawHeaders,
       agent: agent,
       followRedirects: options.followRedirects,
@@ -126,6 +130,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
   if (options.followRedirects) {
     return _request(method, url, {
       allowRedirectHeaders: options.allowRedirectHeaders,
+      duplex: duplex,
       headers: rawHeaders,
       agent: agent,
       retry: options.retry,
@@ -151,6 +156,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
         }
         options = {
           ...options,
+          duplex: false,
           maxRedirects: options.maxRedirects && options.maxRedirects !== Infinity ? options.maxRedirects - 1 : options.maxRedirects,
         };
         // don't maintain headers through redirects
@@ -179,7 +185,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
       }
     });
   }
-  if (cache && method === 'GET') {
+  if (cache && method === 'GET' && !duplex) {
     const timestamp = Date.now();
     return cache.getResponse(url, function (err, cachedResponse) {
       if (err) {
@@ -276,7 +282,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
       }
     });
   }
-  if (options.retry && method === 'GET') {
+  if (options.retry && method === 'GET' && !duplex) {
     return attempt(0);
   }
 

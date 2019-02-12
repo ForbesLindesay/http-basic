@@ -37,6 +37,7 @@ The url as a string (e.g. `http://example.com`).  It must be fully qualified and
 
  - `headers` - (default `{}`) http headers
  - `agent` - (default: `false`) controlls keep-alive (see http://nodejs.org/api/http.html#http_http_request_options_callback)
+ - `duplex` - (default: `true` except for `GET`, `OPTIONS` and `HEAD` requests) allows you to explicitly set a body on a request that uses a method that normally would not have a body
  - `followRedirects` - (default: `false`) - if true, redirects are followed (note that this only affects the result in the callback)
  - `maxRedirects` - (default: `Infinity`) - limit the number of redirects allowed.
  - `allowRedirectHeaders` (default: `null`) - an array of headers allowed for redirects (none if `null`).

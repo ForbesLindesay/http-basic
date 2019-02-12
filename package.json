@@ -20,14 +20,14 @@
     "cache-control"
   ],
   "dependencies": {
-    "@types/concat-stream": "^1.6.0",
-    "@types/node": "*",
     "caseless": "^0.12.0",
     "concat-stream": "^1.6.2",
     "http-response-object": "^3.0.1",
     "parse-cache-control": "^1.0.1"
   },
   "devDependencies": {
+    "@types/concat-stream": "^1.6.0",
+    "@types/node": "^11.9.0",
     "flowgen2": "^2.0.0-alpha.9",
     "rimraf": "^2.5.4",
     "serve-static": "^1.11.1",

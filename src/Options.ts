@@ -8,6 +8,7 @@ interface Options {
   agent?: Agent | boolean;
   allowRedirectHeaders?: string[];
   cache?: 'file' | 'memory' | ICache;
+  duplex?: boolean;
   followRedirects?: boolean;
   gzip?: boolean;
   headers?: Headers;
