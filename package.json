@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/concat-stream": "^1.6.0",
     "@types/node": "^11.9.0",
-    "flowgen2": "^2.0.0-alpha.9",
+    "flowgen2": "^2.2.1",
     "rimraf": "^2.5.4",
     "serve-static": "^1.11.1",
     "typescript": "^2.3.4"
