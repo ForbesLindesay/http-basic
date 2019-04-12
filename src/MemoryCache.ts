@@ -34,6 +34,15 @@ export default class MemoryCache {
       callback(null, null);
     }
   }
+
+  updateResponseHeaders(url: string, response: Pick<CachedResponse, 'headers' | 'requestTimestamp'>) {
+    this._cache[url] = {
+      ...this._cache[url],
+      headers: response.headers,
+      requestTimestamp: response.requestTimestamp
+    };
+  }
+
   setResponse(url: string, response: CachedResponse): void {
     const cache = this._cache;
     response.body.pipe(concat((body) => {
@@ -46,6 +55,7 @@ export default class MemoryCache {
       };
     }));
   }
+
   invalidateResponse(url: string, callback: (err: NodeJS.ErrnoException | null) => void) {
     const cache = this._cache;
     delete cache[url];

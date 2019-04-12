@@ -222,7 +222,34 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
         if (res.statusCode === 304 && cachedResponse) { // Not Modified
           // prevent leakage of file handles
           res.body.resume();
-          const response = new Response(cachedResponse.statusCode, cachedResponse.headers, cachedResponse.body, url);
+          let resultBody = cachedResponse.body;
+          const c = (cache as ICache);
+          if (c.updateResponseHeaders) {
+            c.updateResponseHeaders(url, {
+              headers: res.headers,
+              requestTimestamp: timestamp,
+            });
+          } else {
+            const cachedResponseBody = new PassThrough();
+            const newResultBody = new PassThrough();
+            resultBody.on('data', (data: Buffer) => {
+              cachedResponseBody.write(data);
+              newResultBody.write(data);
+            });
+            resultBody.on('end', () => {
+              cachedResponseBody.end();
+              newResultBody.end();
+            });
+            resultBody = newResultBody;
+            (cache as ICache).setResponse(url, {
+              statusCode: cachedResponse.statusCode,
+              headers: res.headers,
+              body: cachedResponseBody,
+              requestHeaders: cachedResponse.requestHeaders,
+              requestTimestamp: timestamp,
+            });
+          }
+          const response = new Response(cachedResponse.statusCode, cachedResponse.headers, resultBody, url);
           (response as any).fromCache = true;
           (response as any).fromNotModified = true;
           return callback(null, response);

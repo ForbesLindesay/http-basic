@@ -75,6 +75,33 @@ export default class FileCache implements ICache {
     });
   }
 
+  updateResponseHeaders(url: string, response: Pick<CachedResponse, 'headers' | 'requestTimestamp'>) {
+    const key = resolve(this._location, getCacheKey(url));
+    fs.readFile(key + '.json', 'utf8', function (err, data) {
+      if (err) {
+        console.warn('Error writing to cache: ' + err.message);
+        return;
+      }
+      let parsed = null;
+      try {
+        parsed = JSON.parse(data);
+      } catch (ex) {
+        console.warn('Error writing to cache: ' + ex.message);
+        return;
+      }
+      fs.writeFile(key + '.json', JSON.stringify({
+        statusCode: parsed.statusCode,
+        headers: response.headers,
+        requestHeaders: parsed.requestHeaders,
+        requestTimestamp: response.requestTimestamp
+      }, null, '  '), function (err) {
+        if (err) {
+          console.warn('Error writing to cache: ' + err.message);
+        }
+      });
+    });
+  }
+
   invalidateResponse(url: string, callback: (err: NodeJS.ErrnoException | null) => void): void {
     const key = resolve(this._location, getCacheKey(url));
     fs.unlink(key + '.json', (err?: NodeJS.ErrnoException | null) => {
