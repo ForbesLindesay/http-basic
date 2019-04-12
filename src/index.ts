@@ -305,7 +305,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
           attempt(n + 1);
         }, delay);
       } else {
-        callback(null, res);
+        callback(err, res);
       }
     });
   }
