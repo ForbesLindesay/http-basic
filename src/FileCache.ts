@@ -44,7 +44,7 @@ export default class FileCache implements ICache {
     const key = resolve(this._location, this.getCacheKey(url));
     let errored = false;
 
-    fs.mkdir(this._location, function (err) {
+    fs.mkdir(this._location, {recursive: true}, function (err) {
       if (err && err.code !== 'EEXIST') {
         console.warn('Error creating cache: ' + err.message);
         return;
