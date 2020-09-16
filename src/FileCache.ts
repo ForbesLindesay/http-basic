@@ -17,12 +17,6 @@ function jsonParse(data: string, cb: (err: Error | null, result?: any) => void):
   cb(null, result);
 }
 
-function getCacheKey(url: string): string {
-  const hash = createHash('sha512')
-  hash.update(url)
-  return hash.digest('hex')
-}
-
 export default class FileCache implements ICache {
   private readonly _location: string;
   constructor(location: string) {
@@ -30,7 +24,7 @@ export default class FileCache implements ICache {
   }
 
   getResponse(url: string, callback: (err: null | Error, response: null | CachedResponse) => void) {
-    const key = resolve(this._location, getCacheKey(url));
+    const key = resolve(this._location, this.getCacheKey(url));
 
     fs.readFile(key + '.json', 'utf8', function (err, data) {
       if (err && err.code === 'ENOENT') return callback(null, null);
@@ -47,10 +41,10 @@ export default class FileCache implements ICache {
   }
 
   setResponse(url: string, response: CachedResponse): void {
-    const key = resolve(this._location, getCacheKey(url));
+    const key = resolve(this._location, this.getCacheKey(url));
     let errored = false;
 
-    fs.mkdir(this._location, function (err) {
+    fs.mkdir(this._location, {recursive: true}, function (err) {
       if (err && err.code !== 'EEXIST') {
         console.warn('Error creating cache: ' + err.message);
         return;
@@ -76,7 +70,7 @@ export default class FileCache implements ICache {
   }
 
   updateResponseHeaders(url: string, response: Pick<CachedResponse, 'headers' | 'requestTimestamp'>) {
-    const key = resolve(this._location, getCacheKey(url));
+    const key = resolve(this._location, this.getCacheKey(url));
     fs.readFile(key + '.json', 'utf8', function (err, data) {
       if (err) {
         console.warn('Error writing to cache: ' + err.message);
@@ -103,10 +97,16 @@ export default class FileCache implements ICache {
   }
 
   invalidateResponse(url: string, callback: (err: NodeJS.ErrnoException | null) => void): void {
-    const key = resolve(this._location, getCacheKey(url));
+    const key = resolve(this._location, this.getCacheKey(url));
     fs.unlink(key + '.json', (err?: NodeJS.ErrnoException | null) => {
       if (err && err.code === 'ENOENT') return callback(null);
       else callback(err || null);
     });  
+  }
+
+  getCacheKey(url: string): string {
+    const hash = createHash('sha512');
+    hash.update(url);
+    return hash.digest('hex');
   }
 }
