@@ -104,6 +104,7 @@ function _request(method: HttpVerb, url: string, options: Options, callback: Cal
       headers: rawHeaders,
       agent: agent,
       followRedirects: options.followRedirects,
+      maxRedirects: options.maxRedirects,
       retry: options.retry,
       retryDelay: options.retryDelay,
       maxRetries: options.maxRetries,
